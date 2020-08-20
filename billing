@@ -1,0 +1,245 @@
+ #include<stdio.h>
+ #include<conio.h>
+ #include<stdlib.h>
+ void input();
+ void writefile();
+ void search();
+ void output();
+ struct date
+    {
+	   int month;
+	   int day;
+	   int year;
+    };
+ struct account
+    {
+        int number;
+        char name[100];
+        int acct_no;
+        float mobile_no;
+        char street[100];
+        char city[100];
+        char acct_type;
+        float oldbalance;
+        float newbalance;
+        float payment;
+        struct date lastpayment;
+    }customer;
+ int tl,sl,ts;
+ void main()
+	{
+	  int i,n;
+	  char ch;
+	  system("color B4");
+	  system("cls");
+	  printf("\t\t\t\t\t\t\t\t\t\tBILLING SYSTEM:\n\n");
+	  for(i=0;i<168;i++)
+      {
+	  printf("=");
+      }
+	  printf("\n\t\t\t\t\t\t\t\t\t\t1:To add an account\n");
+	  printf("\t\t\t\t\t\t\t\t\t\t2:To search an account\n");
+	  printf("\t\t\t\t\t\t\t\t\t\t3:Quit\n");
+	  for(i=0;i<168;i++)
+      {
+	  printf("=");
+      }
+	  do
+        {
+	       printf("\nEnter your choice:");
+	       ch=getche();
+        }while(ch<='0' || ch>'3');
+	  switch(ch)
+	  {
+		case '1':
+			system("cls");
+			printf("\nHow many accounts you want to create");
+			scanf("%d",&n);
+			for(i=0;i<n;i++)
+			{
+				input();
+				if(customer.payment>0)
+				{
+					customer.acct_type=(customer.payment<0.1*customer.oldbalance)? 'O': 'D';
+				}
+				else
+                {
+					customer.acct_type=(customer.oldbalance>0)?'D' : 'C';
+                    customer.newbalance=customer.oldbalance - customer.payment;
+                    writefile();
+                }
+			}
+			main();
+		case '2':
+			system("cls");
+			printf("\n1.Search by customer number\n");
+			printf("2.Search by customer name\n");
+			search();
+			ch=getche();
+			main();
+		case '3':
+			system("cls");
+			printf("\t\t\t\t\t\t\t\t\t\tThank You\n");
+			for(i=0;i<168;i++)
+              {
+                 printf("=");
+              }
+			exit(1);
+	  }
+ }
+
+
+   void input()
+	{
+	  FILE *fp=fopen("lucky.txt","rb");
+	  fseek(fp,0,SEEK_END);
+	  tl=ftell(fp);
+	  sl=sizeof(customer);
+	  ts=tl/sl;
+	  fseek(fp,(ts-1)*sl,SEEK_SET);
+	  fread(&customer,sizeof(customer),1,fp);
+	  printf("\ncustomer no:%d\n",++customer.number);
+	  fclose(fp);
+	  printf("Account number:");
+	  scanf("%d",&customer.acct_no);
+	  printf("\nName:");
+	  scanf("%s",customer.name);
+	  printf("\nMobile no:");
+	  scanf("%f",&customer.mobile_no);
+	  printf("\nStreet:");
+	  scanf("%s",customer.street);
+	  printf("\nCity:");
+	  scanf("%s",customer.city);
+	  printf("\nPrevious balance:");
+	  scanf("%f",&customer.oldbalance);
+	  printf("\nCurrent payment:");
+	  scanf("%f",&customer.payment);
+	  printf("\nPayment date(mm/dd/yyyy):");
+	  scanf("%d/%d/%d",&customer.lastpayment.month,&customer.lastpayment.day,&customer.lastpayment.year);
+	  return;
+   }
+
+   void writefile()
+   {
+	  FILE *fp;
+	  fp=fopen("lucky.txt","ab");
+	  fwrite(&customer,sizeof(customer),1,fp);
+	  fclose(fp);
+	  return;
+   }
+
+   void search()
+   {
+	 char ch;
+	 char name[100];
+	 int n,i,m=1;
+	 FILE *fp;
+	 fp=fopen("lucky.txt","rb");
+	 do
+        {
+            printf("\nEnter your choice:");
+            ch=getche();
+        }while(ch!='1' && ch!='2');
+	 switch(ch){
+	      case '1':
+		    fseek(fp,0,SEEK_END);
+		    tl=ftell(fp);
+		    sl=sizeof(customer);
+		    ts=tl/sl;
+		    do
+		    {
+                printf("\nEnter customer number:");
+                scanf("%d",&n);
+                if(n<=0 || n>ts)
+                {
+                printf("\nNo match found\n");
+                }
+                else
+                {
+                    fseek(fp,(n-1)*sl,SEEK_SET);
+                    fread(&customer,sl,1,fp);
+                    output();
+                }
+                printf("\nPRESS:-Y to search again\n\tN to go home menu");
+                ch=getche();
+		    }while(ch=='y');
+		    fclose(fp);
+		    return;
+	      case '2':
+		    fseek(fp,0,SEEK_END);
+		    tl=ftell(fp);
+		    sl=sizeof(customer);
+		    ts=tl/sl;
+		    fseek(fp,(ts-1)*sl,SEEK_SET);
+		    fread(&customer,sizeof(customer),1,fp);
+		    n=customer.number;
+		    do
+		    {
+                printf("\nEnter name to search:");
+                scanf("%s",name);
+                fseek(fp,0,SEEK_SET);
+                for(i=1;i<=n;i++)
+                {
+                     fread(&customer,sizeof(customer),1,fp);
+                     if(strcmp(customer.name,name)==0)
+                     {
+                        output();
+                        m=0;
+                        break;
+                     }
+                }
+                if(m!=0)
+                printf("\nDoesn't exist\n");
+                printf("\nPRESS:-Y to search again\n\tN to go home menu");
+                ch=getche();
+		    }while(ch=='y');
+		    fclose(fp);
+	      }
+	      return;
+	 }
+
+   void output()
+	 {
+	   printf("\n\nCustomer no    :%d\n",customer.number);
+	   printf("    Name 	      :%s\n",customer.name);
+	   printf("    Mobile no      :%.f\n",customer.mobile_no);
+	   printf("    Account number :%d\n",customer.acct_no);
+	   printf("    Street         :%s\n",customer.street);
+	   printf("    City           :%s\n",customer.city);
+	   printf("    Old balance    :%.2f\n",customer.oldbalance);
+	   printf("    Current payment:%.2f\n",customer.payment);
+	   printf("    New balance    :%.2f\n",customer.newbalance);
+	   printf("    Payment date   :%d/%d/%d\n\n",customer.lastpayment.month,customer.lastpayment.day,customer.lastpayment.year);
+	   printf("    Account status :");
+
+	   switch(customer.acct_type)
+	      {
+              case 'C':
+                 printf("CURRENT\n\n");
+                 break;
+              case 'O':
+                 printf("OVERDUE\n\n");
+                 break;
+              case 'D':
+                 printf("DELINQUENT\n\n");
+                 break;
+              default:
+                 printf("ERROR\\n\n");
+	      }
+	      return;
+	   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
